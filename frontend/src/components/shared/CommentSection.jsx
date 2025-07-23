@@ -21,7 +21,7 @@ const CommentSection = ({ postId }) => {
     e.preventDefault();
     if (comment.length > 200) {
       toast({
-        title: "Comment length must be lower than or equal to 200 characters",
+        title: "Comment length must be lower than or equal to 200 characters!",
       });
       return;
     }
