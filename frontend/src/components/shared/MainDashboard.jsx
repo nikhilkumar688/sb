@@ -45,58 +45,60 @@ const MainDashboard = () => {
 
   const { currentUser } = useSelector((state) => state.user);
 
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch("/api/user/getusers?limit=5", {
+        const res = await fetch(`${BASE_URL}/api/user/getusers?limit=5`, {
           credentials: "include",
         });
         const data = await res.json();
         if (res.ok) {
-          setUsers(data.users);
-          setTotalUsers(data.totalUsers);
-          setLastMonthUsers(data.lastMonthUsers);
+          setUsers(data.users || []);
+          setTotalUsers(data.totalUsers || 0);
+          setLastMonthUsers(data.lastMonthUsers || 0);
         }
       } catch (error) {
-        console.log(error.message);
+        console.log("Error fetching users:", error.message);
       }
     };
 
     const fetchPosts = async () => {
       try {
-        const res = await fetch("/api/post/getposts?limit=5", {
+        const res = await fetch(`${BASE_URL}/api/post/getposts?limit=5`, {
           credentials: "include",
         });
         const data = await res.json();
         if (res.ok) {
-          setPosts(data.posts);
-          setTotalPosts(data.totalPosts);
-          setLastMonthPosts(data.lastMonthPosts);
+          setPosts(data.posts || []);
+          setTotalPosts(data.totalPosts || 0);
+          setLastMonthPosts(data.lastMonthPosts || 0);
         }
       } catch (error) {
-        console.log(error.message);
+        console.log("Error fetching posts:", error.message);
       }
     };
 
     const fetchComments = async () => {
       try {
-        const res = await fetch("/api/comment/getcomments?limit=5", {
+        const res = await fetch(`${BASE_URL}/api/comment/getcomments?limit=5`, {
           credentials: "include",
         });
         const data = await res.json();
         if (res.ok) {
-          setComments(data.comments);
-          setTotalComments(data.totalComments);
-          setLastMonthComments(data.lastMonthComments);
+          setComments(data.comments || []);
+          setTotalComments(data.totalComments || 0);
+          setLastMonthComments(data.lastMonthComments || 0);
         }
       } catch (error) {
-        console.log(error.message);
+        console.log("Error fetching comments:", error.message);
       }
     };
 
     const fetchAnalytics = async () => {
       try {
-        const res = await fetch("/api/analytics/summary", {
+        const res = await fetch(`${BASE_URL}/api/analytics/summary`, {
           credentials: "include",
         });
         const data = await res.json();
@@ -104,7 +106,7 @@ const MainDashboard = () => {
           setAnalytics(data);
         }
       } catch (error) {
-        console.error("Error fetching analytics", error.message);
+        console.error("Error fetching analytics:", error.message);
       }
     };
 
@@ -114,14 +116,15 @@ const MainDashboard = () => {
       fetchComments();
       fetchAnalytics();
     }
-  }, [currentUser]);
+  }, [currentUser, BASE_URL]);
 
-  const chartData = analytics.users.map((u, i) => ({
-    name: u.month,
-    Users: u.count,
-    Posts: analytics.posts[i]?.count || 0,
-    Comments: analytics.comments[i]?.count || 0,
-  }));
+  const chartData =
+    analytics?.users?.map((u, i) => ({
+      name: u.month || `Month ${i + 1}`,
+      Users: u.count || 0,
+      Posts: analytics.posts?.[i]?.count || 0,
+      Comments: analytics.comments?.[i]?.count || 0,
+    })) || [];
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-100 via-rose-50 to-indigo-100 p-4 md:p-10">
@@ -225,7 +228,7 @@ const MainDashboard = () => {
                 <TableRow key={user._id}>
                   <TableCell>
                     <img
-                      src={user.profilePicture}
+                      src={user.profilePicture || "/default-avatar.png"}
                       alt={user.username}
                       className="w-10 h-10 object-cover rounded-full"
                     />
@@ -261,7 +264,7 @@ const MainDashboard = () => {
                   <TableCell className="line-clamp-2 max-w-[220px]">
                     {comment.content}
                   </TableCell>
-                  <TableCell>{comment.numberOfLikes}</TableCell>
+                  <TableCell>{comment.numberOfLikes || 0}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -290,7 +293,7 @@ const MainDashboard = () => {
                 <TableRow key={post._id}>
                   <TableCell>
                     <img
-                      src={post.image}
+                      src={post.image || "/default-post.jpg"}
                       alt={post.title}
                       className="w-10 h-10 object-cover rounded-md"
                     />
