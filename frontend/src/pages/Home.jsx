@@ -6,16 +6,27 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import ToppostAdvertise from "@/components/shared/Toppostadvertise";
 
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const Home = () => {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch("/api/post/getPosts?limit=6");
+        const res = await fetch(`${BASE_URL}/api/post/getPosts?limit=6`, {
+          credentials: "include", // ✅ needed if using cookies/auth
+        });
+
         const data = await res.json();
+
         if (res.ok) {
           setPosts(data.posts);
+        } else {
+          console.error(
+            "Error fetching posts:",
+            data.message || res.statusText
+          );
         }
       } catch (error) {
         console.error("Failed to fetch posts:", error);
@@ -109,7 +120,7 @@ const Home = () => {
 
       {/* Recent Posts Section */}
       <div className="max-w-6xl mx-auto p-3 flex flex-col gap-8 py-7 animate-fade-in-up">
-        {posts && posts.length > 0 && (
+        {posts && posts.length > 0 ? (
           <div className="flex flex-col gap-6">
             <h2 className="text-3xl font-bold text-indigo-700 border-b pb-2 w-fit border-indigo-300">
               ताज़ा खबरें
@@ -128,6 +139,8 @@ const Home = () => {
               और खबरें देखें
             </Link>
           </div>
+        ) : (
+          <p className="text-center text-gray-600">कोई खबरें नहीं मिलीं।</p>
         )}
       </div>
 
@@ -139,7 +152,6 @@ const Home = () => {
   );
 };
 
-// FeatureCard Subcomponent
 const FeatureCard = ({ title, description, icon, bgColor }) => {
   return (
     <div
