@@ -23,7 +23,8 @@ import {
 import GoogleAuth from "@/components/shared/GoogleAuth";
 
 // ✅ Step 1: Set backend base URL from environment or localhost
-const baseURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const baseURL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
 // ✅ Step 2: Validation Schema
 const formSchema = z.object({

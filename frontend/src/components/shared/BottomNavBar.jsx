@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 // ✅ Add BASE_URL for backend
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
 const BottomNavBar = () => {
   const dispatch = useDispatch();

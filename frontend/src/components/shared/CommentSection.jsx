@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import Comment from "./Comment";
 
 // ✅ Define BASE_URL once
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
 const CommentSection = ({ postId }) => {
   const { toast } = useToast();

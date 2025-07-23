@@ -22,8 +22,8 @@ import {
 } from "../ui/alert-dialog";
 
 // 🔗 Base URL for API
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 const DashboardComments = () => {
   const { currentUser } = useSelector((state) => state.user);
 

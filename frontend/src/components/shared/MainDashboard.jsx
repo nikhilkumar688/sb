@@ -45,7 +45,8 @@ const MainDashboard = () => {
 
   const { currentUser } = useSelector((state) => state.user);
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+  const BASE_URL =
+    import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
   useEffect(() => {
     const fetchUsers = async () => {

@@ -17,7 +17,8 @@ import {
 } from "../ui/alert-dialog";
 
 // ✅ Use environment variable for backend base URL
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
 const Comment = ({ comment, onLike, onEdit, onDelete }) => {
   const [user, setUser] = useState({});

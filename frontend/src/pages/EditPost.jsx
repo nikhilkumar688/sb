@@ -18,7 +18,8 @@ import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
 // You can also import BASE_URL from a config if you have it:
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "https://your-api-url.com";
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
 const EditPost = () => {
   const { toast } = useToast();

@@ -28,7 +28,8 @@ import {
 } from "../ui/alert-dialog";
 
 // ✅ Add BASE_URL
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
 const DashboardProfile = () => {
   const { currentUser, error, loading } = useSelector((state) => state.user);
