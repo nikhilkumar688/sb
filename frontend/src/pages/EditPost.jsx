@@ -17,94 +17,106 @@ import "react-quill/dist/quill.snow.css";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
+// You can also import BASE_URL from a config if you have it:
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "https://your-api-url.com";
+
 const EditPost = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { postId } = useParams();
   const { currentUser } = useSelector((state) => state.user);
+
   const [file, setFile] = useState(null);
   const [imageUploadError, setImageUploadError] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
-
   const [formData, setFormData] = useState({});
-  console.log(formData);
+  const [updatePostError, setUpdatePostError] = useState(null);
 
-  const [UpdatePostError, setUpdatePostError] = useState(null);
   useEffect(() => {
-    try {
-      const fetchPost = async () => {
-        const res = await fetch(`/api/post/getposts?postId=${postId}`);
+    const fetchPost = async () => {
+      try {
+        const res = await fetch(
+          `${BASE_URL}/api/post/getposts?postId=${postId}`,
+          {
+            credentials: "include",
+          }
+        );
         const data = await res.json();
         if (!res.ok) {
-          console.log(data.message);
+          console.error("Error fetching post:", data.message);
           setUpdatePostError(data.message);
-          return;
-        }
-        if (res.ok) {
+        } else {
+          setFormData(data.posts[0] || {});
           setUpdatePostError(null);
-          setFormData(data.posts[0]);
         }
-      };
-      fetchPost();
-    } catch (error) {
-      console.log(error.message);
-    }
-  }, [postId]);
-  const handleUploadImage = async () => {
-    try {
-      if (!file) {
-        setImageUploadError("Please select an image!");
-        toast({ title: "Please select an image!" });
-        return;
+      } catch (error) {
+        console.error("Error fetching post:", error);
+        setUpdatePostError("Something went wrong while fetching post.");
       }
+    };
+
+    fetchPost();
+  }, [postId]);
+
+  const handleUploadImage = async () => {
+    if (!file) {
+      setImageUploadError("Please select an image!");
+      toast({ title: "Please select an image!" });
+      return;
+    }
+
+    try {
       setImageUploading(true);
       setImageUploadError(null);
       const uploadedFile = await uploadFile(file);
       const postImageUrl = getFileView(uploadedFile.$id);
-      setFormData({ ...formData, image: postImageUrl });
-      toast({ title: "Image Uploaded Successfully!" });
-      if (postImageUrl) {
-        setImageUploading(false);
-      }
+      setFormData((prev) => ({ ...prev, image: postImageUrl }));
+      toast({ title: "Image uploaded successfully!" });
     } catch (error) {
       setImageUploadError("Image upload failed");
-      console.log(error);
+      console.error("Upload error:", error);
       toast({ title: "Image upload failed" });
+    } finally {
       setImageUploading(false);
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const res = await fetch(
-        `/api/post/updatepost/${postId}/${currentUser._id}`,
+        `${BASE_URL}/api/post/updatepost/${postId}/${currentUser._id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify(formData),
         }
       );
       const data = await res.json();
+
       if (!res.ok) {
-        toast({ title: "Smething went wrong! Please try again." });
+        toast({ title: "Something went wrong! Please try again." });
         setUpdatePostError(data.message);
         return;
       }
-      if (res.ok) {
-        toast({ title: "Article published Successfully." });
-        setUpdatePostError(null);
-        navigate(`/post/${data.slug}`);
-      }
+
+      toast({ title: "Article updated successfully!" });
+      navigate(`/post/${data.slug}`);
     } catch (error) {
-      toast({ title: "Smething went wrong! Please try again." });
-      setUpdatePostError("Smething went wrong! Please try again.");
+      console.error("Update failed:", error);
+      toast({ title: "Something went wrong! Please try again." });
+      setUpdatePostError("Something went wrong! Please try again.");
     }
   };
+
   return (
     <div className="p-3 max-w-3xl mx-auto min-h-screen">
       <h1 className="text-center text-3xl my-7 font-semibold text-slate-700">
         Edit Post
       </h1>
+
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4 sm:flex-row justify-between">
           <Input
@@ -116,13 +128,13 @@ const EditPost = () => {
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            value={formData.title}
+            value={formData.title || ""}
           />
           <Select
             onValueChange={(value) =>
               setFormData({ ...formData, category: value })
             }
-            value={formData.category}
+            value={formData.category || ""}
           >
             <SelectTrigger className="w-full sm:w-1/4 h-12 border border-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0">
               <SelectValue placeholder="Select a Category" />
@@ -139,6 +151,7 @@ const EditPost = () => {
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex gap-4 items-center justify-between border-4 border-slate-600 border-dotted p-3">
           <Input
             type="file"
@@ -153,35 +166,39 @@ const EditPost = () => {
             {imageUploading ? "Uploading..." : "Upload Image"}
           </Button>
         </div>
+
         {imageUploadError && <p className="text-red-600">{imageUploadError}</p>}
+
         {formData.image && (
           <img
             src={formData.image}
-            alt="upload"
-            className="W-full h-96 object-cover"
+            alt="Uploaded"
+            className="w-full h-96 object-cover"
           />
         )}
+
         <ReactQuill
           theme="snow"
-          placeholder="Write Something here..."
+          placeholder="Write something here..."
           className="h-72 mb-12"
           required
-          onChange={(value) => {
-            setFormData({ ...formData, content: value });
-          }}
-          value={formData.content}
+          onChange={(value) => setFormData({ ...formData, content: value })}
+          value={formData.content || ""}
         />
+
         <Button
           type="submit"
           className="h-12 bg-[#111368] font-semibold hover:bg-rose-500 max-sm:mt-5 text-md"
         >
           Update Your Article
         </Button>
-        {UpdatePostError && (
-          <p className="text-red-600 mt-5">{UpdatePostError}</p>
+
+        {updatePostError && (
+          <p className="text-red-600 mt-5">{updatePostError}</p>
         )}
       </form>
     </div>
   );
 };
+
 export default EditPost;
