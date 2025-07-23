@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PostCard from "@/components/shared/PostCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+
+const BACKEND = import.meta.env.VITE_BACKEND_URL;
 
 const Search = () => {
   const location = useLocation();
@@ -23,211 +25,134 @@ const Search = () => {
     sort: "desc",
     category: "",
   });
-
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.search);
 
-    const searchTermFromUrl = urlParams.get("searchTerm");
-    const sortFromUrl = urlParams.get("sort");
-    const categoryFromUrl = urlParams.get("category");
-
-    if (searchTermFromUrl || sortFromUrl || categoryFromUrl) {
-      setSidebarData({
-        ...sidebarData,
-        searchTerm: searchTermFromUrl || "",
-        sort: sortFromUrl || "",
-        category: categoryFromUrl || "",
-      });
-    }
+    setSidebarData({
+      searchTerm: params.get("searchTerm") || "",
+      sort: params.get("sort") || "desc",
+      category: params.get("category") || "",
+    });
 
     const fetchPosts = async () => {
       setLoading(true);
-
-      const searchQuery = urlParams.toString();
-
-      const res = await fetch(`/api/post/getposts?${searchQuery}`);
-
+      const res = await fetch(
+        `${BACKEND}/api/post/getposts?${params.toString()}`,
+        { credentials: "include" }
+      );
       if (!res.ok) {
         setLoading(false);
+        setPosts([]);
         return;
       }
-
-      if (res.ok) {
-        const data = await res.json();
-        setPosts(data.posts);
-        setLoading(false);
-
-        if (data.posts.length === 9) {
-          setShowMore(true);
-        } else {
-          setShowMore(false);
-        }
-      }
+      const data = await res.json();
+      setPosts(data.posts);
+      setShowMore(data.posts.length === 9);
+      setLoading(false);
     };
 
     fetchPosts();
   }, [location.search]);
 
   const handleChange = (e) => {
-    if (e.target.id === "searchTerm") {
-      setSidebarData({ ...sidebarData, searchTerm: e.target.value });
-    }
+    setSidebarData({ ...sidebarData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const onFilterSubmit = (e) => {
     e.preventDefault();
-
-    const urlParams = new URLSearchParams(location.search);
-
-    urlParams.set("searchTerm", sidebarData.searchTerm);
-    urlParams.set("sort", sidebarData.sort);
-    urlParams.set("category", sidebarData.category);
-
-    const searchQuery = urlParams.toString();
-
-    navigate(`/search?${searchQuery}`);
+    const params = new URLSearchParams();
+    sidebarData.searchTerm && params.set("searchTerm", sidebarData.searchTerm);
+    sidebarData.sort && params.set("sort", sidebarData.sort);
+    sidebarData.category && params.set("category", sidebarData.category);
+    navigate(`/search?${params.toString()}`);
   };
 
   const handleShowMore = async () => {
-    const numberOfPosts = posts.length;
-    const startIndex = numberOfPosts;
-    const urlParams = new URLSearchParams(location.search);
-
-    urlParams.set("startIndex", startIndex);
-
-    const searchQuery = urlParams.toString();
-
-    const res = await fetch(`/api/post/getposts?${searchQuery}`);
-
-    if (!res.ok) {
-      return;
-    }
-
-    if (res.ok) {
-      const data = await res.json();
-
-      setPosts([...posts, ...data.posts]);
-
-      if (data.posts.length === 9) {
-        setShowMore(true);
-      } else {
-        setShowMore(false);
-      }
-    }
+    const params = new URLSearchParams(location.search);
+    params.set("startIndex", posts.length);
+    const res = await fetch(
+      `${BACKEND}/api/post/getposts?${params.toString()}`,
+      { credentials: "include" }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    setPosts((prev) => [...prev, ...data.posts]);
+    setShowMore(data.posts.length === 9);
   };
 
   return (
     <div className="flex flex-col md:flex-row bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-100 min-h-screen">
-      {/* Sidebar */}
       <aside className="p-6 md:w-1/4 bg-white/80 backdrop-blur shadow-md border-r border-gray-300">
-        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-          <h2 className="text-2xl font-semibold text-gray-700">Filters</h2>
+        <form onSubmit={onFilterSubmit} className="flex flex-col gap-6">
+          <h2 className="text-2xl font-semibold">Filters</h2>
 
-          {/* search input */}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-gray-600">Search Term:</label>
+          <label>
+            Search Term
             <Input
-              placeholder="Search..."
               id="searchTerm"
-              type="text"
-              className="border-gray-300 rounded-md"
               value={sidebarData.searchTerm}
               onChange={handleChange}
+              placeholder="Search..."
             />
-          </div>
+          </label>
 
-          {/* Sort By */}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-gray-600">Sort By:</label>
-
+          <label>
+            Sort By
             <Select
-              onValueChange={(value) =>
-                setSidebarData({ ...sidebarData, sort: value })
-              }
               value={sidebarData.sort}
+              onValueChange={(v) => setSidebarData({ ...sidebarData, sort: v })}
             >
-              <SelectTrigger className="w-full border border-slate-400">
-                <SelectValue placeholder="Select Order" />
+              <SelectTrigger>
+                <SelectValue />
               </SelectTrigger>
-
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Order by:</SelectLabel>
+                  <SelectLabel>Order</SelectLabel>
                   <SelectItem value="desc">Latest</SelectItem>
                   <SelectItem value="asc">Oldest</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
+          </label>
 
-          {/* Category */}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-gray-600">Category:</label>
-
+          <label>
+            Category
             <Select
-              onValueChange={(value) =>
-                setSidebarData({ ...sidebarData, category: value })
-              }
               value={sidebarData.category}
+              onValueChange={(v) =>
+                setSidebarData({ ...sidebarData, category: v })
+              }
             >
-              <SelectTrigger className="w-full border border-slate-400">
-                <SelectValue placeholder="Select a Category" />
+              <SelectTrigger>
+                <SelectValue />
               </SelectTrigger>
-
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Category:</SelectLabel>
+                  <SelectLabel>Category</SelectLabel>
                   <SelectItem value="worldnews">World News</SelectItem>
                   <SelectItem value="sportsnews">Sports News</SelectItem>
                   <SelectItem value="localnews">Local News</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
+          </label>
 
-          {/* submit button */}
-          <Button
-            type="submit"
-            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md shadow-lg"
-          >
-            Apply Filters
-          </Button>
+          <Button type="submit">Apply Filters</Button>
         </form>
       </aside>
 
-      {/* Posts Area */}
       <div className="w-full">
-        <h1 className="text-2xl font-semibold text-slate-700 p-3 mt-5">
-          News Articles:
-        </h1>
-
-        <Separator className="bg-slate-300" />
-
+        <h1 className="text-2xl font-semibold p-3 mt-5">News Articles:</h1>
+        <Separator />
         <div className="p-7 flex flex-wrap gap-4">
-          {!loading && posts.length === 0 && (
-            <p className="text-xl text-gray-500">No posts found.</p>
-          )}
-
-          {loading && (
-            <p className="text-xl text-gray-500 animate-pulse">Loading...</p>
-          )}
-
-          {!loading &&
-            posts &&
-            posts.map((post) => <PostCard key={post._id} post={post} />)}
-
-          {showMore && (
-            <button
-              onClick={handleShowMore}
-              className="text-slate-800 text-lg hover:underline p-7 w-full"
-            >
-              Show More
-            </button>
-          )}
+          {loading && <p>Loading…</p>}
+          {!loading && posts.length === 0 && <p>No posts found.</p>}
+          {!loading && posts.map((p) => <PostCard key={p._id} post={p} />)}
+          {showMore && <button onClick={handleShowMore}>Show More</button>}
         </div>
       </div>
     </div>
