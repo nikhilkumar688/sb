@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import ToppostAdvertise from "@/components/shared/Toppostadvertise";
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://sb-4z7m.onrender.com";
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
