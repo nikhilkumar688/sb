@@ -5,16 +5,22 @@ import { IoIosCreate, IoIosDocument } from "react-icons/io";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
+// ✅ Add BASE_URL for backend
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const BottomNavBar = () => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
 
   const handleSignout = async () => {
     try {
-      const res = await fetch("/api/user/signout", {
+      const res = await fetch(`${BASE_URL}/api/user/signout`, {
         method: "POST",
+        credentials: "include", // ✅ if using cookies
       });
+
       const data = await res.json();
+
       if (!res.ok) {
         console.log(data.message);
       } else {

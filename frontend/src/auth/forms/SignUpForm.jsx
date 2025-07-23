@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,13 +16,17 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import GoogleAuth from "@/components/shared/GoogleAuth";
 
+// ✅ Step 1: Define backend base URL
+const baseURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+// ✅ Step 2: Zod validation schema
 const formSchema = z.object({
-  username: z
-    .string()
-    .min(2, { message: "Username must be at least 2 characters" }),
+  username: z.string().min(2, {
+    message: "Username must be at least 2 characters",
+  }),
   email: z
     .string()
-    .min(5, { message: "Email must be at least 5 characters" }) // or use email() for proper validation
+    .min(5, { message: "Email must be at least 5 characters" })
     .email({ message: "Invalid email address" }),
   password: z
     .string()
@@ -35,6 +38,7 @@ const SignUpForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,31 +47,33 @@ const SignUpForm = () => {
       password: "",
     },
   });
-  //Define a Submit handler
+
+  // ✅ Step 3: Submit handler with full URL
   async function onSubmit(values) {
     try {
       setLoading(true);
       setErrorMessage(null);
-      const res = await fetch("/api/auth/Signup", {
+
+      const res = await fetch(`${baseURL}/api/auth/Signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
+
       const data = await res.json();
+
       if (data.success === false) {
         setLoading(false);
         toast({ title: "Sign up failed! Please try again." });
         return setErrorMessage(data.message);
       }
-      setLoading(false);
-      if (res.ok) {
-        toast({ title: "Sign up Successfull!" });
-        navigate("/sign-in");
-      }
-    } catch (error) {
-      setErrorMessage(error.message);
 
       setLoading(false);
+      toast({ title: "Sign up Successful!" });
+      navigate("/sign-in");
+    } catch (error) {
+      setLoading(false);
+      setErrorMessage(error.message);
       toast({ title: "Something went wrong!" });
     }
   }
@@ -93,7 +99,7 @@ const SignUpForm = () => {
         </div>
 
         {/* Right */}
-        <div className="w-full md:w-1/2 ">
+        <div className="w-full md:w-1/2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
               <FormField
@@ -160,7 +166,7 @@ const SignUpForm = () => {
 
           <div className="flex gap-2 text-sm mt-5">
             <span>Have an account?</span>
-            <Link to="/sign-in" className="text-blue-500">
+            <Link to="/sign-in" className="text-blue-500 hover:underline">
               Sign in
             </Link>
           </div>

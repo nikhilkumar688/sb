@@ -27,6 +27,9 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 
+// ✅ Add BASE_URL
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const DashboardProfile = () => {
   const { currentUser, error, loading } = useSelector((state) => state.user);
   const profilePicRef = useRef();
@@ -67,14 +70,19 @@ const DashboardProfile = () => {
       dispatch(updateStart());
       const profilePicture = await uploadImage();
       const updateProfile = { ...formData, profilePicture };
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateProfile),
-      });
+
+      const res = await fetch(
+        `${BASE_URL}/api/user/update/${currentUser._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updateProfile),
+          credentials: "include",
+        }
+      );
 
       if (res.status === 401) {
         localStorage.removeItem("token");
@@ -100,10 +108,14 @@ const DashboardProfile = () => {
   const handleDeleteUser = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${BASE_URL}/api/user/delete/${currentUser._id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
+        }
+      );
 
       if (res.status === 401) {
         localStorage.removeItem("token");
@@ -126,7 +138,10 @@ const DashboardProfile = () => {
 
   const handleSignout = async () => {
     try {
-      const res = await fetch("/api/user/signout", { method: "POST" });
+      const res = await fetch(`${BASE_URL}/api/user/signout`, {
+        method: "POST",
+        credentials: "include",
+      });
       const data = await res.json();
       if (res.ok) {
         dispatch(signOutSuccess());

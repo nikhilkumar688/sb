@@ -6,12 +6,16 @@ import { Button } from "../ui/button";
 import { useToast } from "@/hooks/use-toast";
 import Comment from "./Comment";
 
+// ✅ Define BASE_URL once
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const CommentSection = ({ postId }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const currentUser = useSelector((state) => state.user?.currentUser);
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState([]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (comment.length > 200) {
@@ -21,7 +25,7 @@ const CommentSection = ({ postId }) => {
       return;
     }
     try {
-      const res = await fetch("/api/comment/create", {
+      const res = await fetch(`${BASE_URL}/api/comment/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,11 +47,13 @@ const CommentSection = ({ postId }) => {
       toast({ title: "Something went wrong! Please try again." });
     }
   };
+
   useEffect(() => {
     const getComments = async () => {
       try {
-        const res = await fetch(`/api/comment/getPostComments/${postId}`);
-
+        const res = await fetch(
+          `${BASE_URL}/api/comment/getPostComments/${postId}`
+        );
         if (res.ok) {
           const data = await res.json();
           setAllComments(data);
@@ -59,6 +65,7 @@ const CommentSection = ({ postId }) => {
 
     getComments();
   }, [postId]);
+
   const handleLike = async (commentId) => {
     try {
       if (!currentUser) {
@@ -66,13 +73,15 @@ const CommentSection = ({ postId }) => {
         return;
       }
 
-      const res = await fetch(`/api/comment/likeComment/${commentId}`, {
-        method: "PUT",
-      });
+      const res = await fetch(
+        `${BASE_URL}/api/comment/likeComment/${commentId}`,
+        {
+          method: "PUT",
+        }
+      );
 
       if (res.ok) {
         const data = await res.json();
-
         setAllComments(
           allComments.map((comment) =>
             comment._id === commentId
@@ -89,6 +98,7 @@ const CommentSection = ({ postId }) => {
       console.log(error.message);
     }
   };
+
   const handleEdit = async (comment, editedContent) => {
     setAllComments(
       allComments.map((c) =>
@@ -96,23 +106,22 @@ const CommentSection = ({ postId }) => {
       )
     );
   };
+
   const handleDelete = async (commentId) => {
     try {
-      // console.log(commentId)
-
       if (!currentUser) {
         navigate("/sign-in");
-
         return;
       }
 
-      const res = await fetch(`/api/comment/deleteComment/${commentId}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `${BASE_URL}/api/comment/deleteComment/${commentId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (res.ok) {
-        const data = await res.json();
-
         setAllComments(
           allComments.filter((comment) => comment._id !== commentId)
         );
@@ -147,9 +156,10 @@ const CommentSection = ({ postId }) => {
           </Link>
         </div>
       )}
+
       {currentUser && (
         <form
-          className="border-2 border-gray-400 rounder-md p-4"
+          className="border-2 border-gray-400 rounded-md p-4"
           onSubmit={handleSubmit}
         >
           <Textarea
@@ -164,17 +174,17 @@ const CommentSection = ({ postId }) => {
             <p className="text-gray-500 text-sm">
               {200 - comment.length} characters remaining
             </p>
-            <Button type="Submit">Submit</Button>
+            <Button type="submit">Submit</Button>
           </div>
         </form>
       )}
+
       {allComments.length === 0 ? (
         <p className="text-sm my-5">No comments yet!</p>
       ) : (
         <>
           <div className="text-sm my-5 flex items-center gap-1 font-semibold">
             <p>Comments</p>
-
             <div className="border border-gray-400 py-1 px-2 rounded-sm">
               <p>{allComments.length}</p>
             </div>

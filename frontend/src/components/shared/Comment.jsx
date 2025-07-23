@@ -15,6 +15,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+
+// ✅ Use environment variable for backend base URL
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const Comment = ({ comment, onLike, onEdit, onDelete }) => {
   const [user, setUser] = useState({});
   const [isEditing, setIsEditing] = useState(false);
@@ -24,7 +28,7 @@ const Comment = ({ comment, onLike, onEdit, onDelete }) => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const res = await fetch(`/api/user/${comment.userId}`);
+        const res = await fetch(`${BASE_URL}/api/user/${comment.userId}`);
         const data = await res.json();
         if (res.ok) {
           setUser(data);
@@ -43,15 +47,18 @@ const Comment = ({ comment, onLike, onEdit, onDelete }) => {
 
   const handleSave = async () => {
     try {
-      const res = await fetch(`/api/comment/editComment/${comment._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: editedContent,
-        }),
-      });
+      const res = await fetch(
+        `${BASE_URL}/api/comment/editComment/${comment._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: editedContent,
+          }),
+        }
+      );
 
       if (res.ok) {
         setIsEditing(false);
@@ -112,9 +119,10 @@ const Comment = ({ comment, onLike, onEdit, onDelete }) => {
               >
                 Cancel
               </Button>
+
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <span className="text-green-400 bg-[#f10404] bg-opacity-70 hover:bg-opacity-100 rounded-full shadow-2xl border-y-2 border-black  font-bold hover:text-white p-2 cursor-pointer">
+                  <span className="text-green-400 bg-[#f10404] bg-opacity-70 hover:bg-opacity-100 rounded-full shadow-2xl border-y-2 border-black font-bold hover:text-white p-2 cursor-pointer">
                     Delete
                   </span>
                 </AlertDialogTrigger>
@@ -158,7 +166,7 @@ const Comment = ({ comment, onLike, onEdit, onDelete }) => {
                   "!text-blue-600"
                 }`}
               >
-                <BiSolidLike className=" text-xl hover:text-2xl" />
+                <BiSolidLike className="text-xl hover:text-2xl" />
               </button>
 
               <p className="text-gray-400">
@@ -170,15 +178,13 @@ const Comment = ({ comment, onLike, onEdit, onDelete }) => {
 
               {currentUser &&
                 (currentUser._id === comment.userId || currentUser.isAdmin) && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleEdit}
-                      className="text-blue-400 ml-2 hover:text-rose-600"
-                    >
-                      Edit
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={handleEdit}
+                    className="text-blue-400 ml-2 hover:text-rose-600"
+                  >
+                    Edit
+                  </button>
                 )}
             </div>
           </>

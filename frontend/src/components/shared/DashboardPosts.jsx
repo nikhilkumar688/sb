@@ -22,7 +22,8 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 
-// Helper to truncate title
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const getShortTitle = (title) => {
   return (
     title.split(" ").slice(0, 10).join(" ") +
@@ -41,9 +42,12 @@ const DashboardPosts = () => {
     const fetchPosts = async () => {
       try {
         const encodedUserId = encodeURIComponent(currentUser._id);
-        const res = await fetch(`/api/post/getposts?userId=${encodedUserId}`, {
-          credentials: "include",
-        });
+        const res = await fetch(
+          `${BASE_URL}/api/post/getposts?userId=${encodedUserId}`,
+          {
+            credentials: "include",
+          }
+        );
 
         const data = await res.json();
 
@@ -72,7 +76,7 @@ const DashboardPosts = () => {
     try {
       const encodedUserId = encodeURIComponent(currentUser._id);
       const res = await fetch(
-        `/api/post/getposts?userId=${encodedUserId}&startIndex=${startIndex}`,
+        `${BASE_URL}/api/post/getposts?userId=${encodedUserId}&startIndex=${startIndex}`,
         {
           credentials: "include",
         }
@@ -91,7 +95,7 @@ const DashboardPosts = () => {
   const handleDeletePost = async () => {
     try {
       const res = await fetch(
-        `/api/post/deletepost/${postIdToDelete}/${currentUser._id}`,
+        `${BASE_URL}/api/post/deletepost/${postIdToDelete}/${currentUser._id}`,
         {
           method: "DELETE",
         }

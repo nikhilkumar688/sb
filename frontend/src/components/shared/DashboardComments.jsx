@@ -21,6 +21,9 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 
+// 🔗 Base URL for API
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 const DashboardComments = () => {
   const { currentUser } = useSelector((state) => state.user);
 
@@ -31,7 +34,7 @@ const DashboardComments = () => {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const res = await fetch(`/api/comment/getcomments`);
+        const res = await fetch(`${BASE_URL}/api/comment/getcomments`);
         const data = await res.json();
 
         if (res.ok) {
@@ -43,16 +46,16 @@ const DashboardComments = () => {
       }
     };
 
-    if (currentUser.isAdmin) {
+    if (currentUser?.isAdmin) {
       fetchComments();
     }
-  }, [currentUser._id]);
+  }, [currentUser?._id]);
 
   const handleShowMore = async () => {
     const startIndex = comments.length;
     try {
       const res = await fetch(
-        `/api/comment/getcomments?startIndex=${startIndex}`
+        `${BASE_URL}/api/comment/getcomments?startIndex=${startIndex}`
       );
       const data = await res.json();
       if (res.ok) {
@@ -67,7 +70,7 @@ const DashboardComments = () => {
   const handleDeleteComment = async () => {
     try {
       const res = await fetch(
-        `/api/comment/deleteComment/${commentIdToDelete}`,
+        `${BASE_URL}/api/comment/deleteComment/${commentIdToDelete}`,
         {
           method: "DELETE",
         }
@@ -92,7 +95,7 @@ const DashboardComments = () => {
           Comments Dashboard
         </h1>
 
-        {currentUser.isAdmin && comments.length > 0 ? (
+        {currentUser?.isAdmin && comments.length > 0 ? (
           <>
             <Table>
               <TableCaption>A list of your recent comments.</TableCaption>

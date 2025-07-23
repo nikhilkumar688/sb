@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,10 +22,14 @@ import {
 } from "@/redux/user/userSlice";
 import GoogleAuth from "@/components/shared/GoogleAuth";
 
+// ✅ Step 1: Set backend base URL from environment or localhost
+const baseURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+// ✅ Step 2: Validation Schema
 const formSchema = z.object({
   email: z
     .string()
-    .min(5, { message: "Email must be at least 5 characters" }) // or use email() for proper validation
+    .min(5, { message: "Email must be at least 5 characters" })
     .email({ message: "Invalid email address" }),
   password: z
     .string()
@@ -38,6 +41,7 @@ const SignInForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, error: errorMessage } = useSelector((state) => state.user);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -45,24 +49,27 @@ const SignInForm = () => {
       password: "",
     },
   });
-  //Define a Submit handler
+
+  // ✅ Step 3: Updated fetch call with full baseURL
   async function onSubmit(values) {
     try {
       dispatch(signInStart());
-      const res = await fetch("/api/auth/Signin", {
+      const res = await fetch(`${baseURL}/api/auth/Signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
       const data = await res.json();
+
       if (data.success === false) {
         toast({ title: "Sign in failed! Please try again." });
         dispatch(signInFailure(data.message));
+        return;
       }
 
       if (res.ok) {
         dispatch(signInSuccess(data));
-        toast({ title: "Sign in Successfull!" });
+        toast({ title: "Sign in Successful!" });
         navigate("/");
       }
     } catch (error) {
@@ -92,7 +99,7 @@ const SignInForm = () => {
         </div>
 
         {/* Right */}
-        <div className="w-full md:w-1/2 ">
+        <div className="w-full md:w-1/2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
               <FormField
